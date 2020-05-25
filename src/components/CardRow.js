@@ -13,7 +13,7 @@ const CardRow = ({spots}) => {
                 horizontal={true}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => {
-                    return <Card suit={item.suit} value={item.value} />
+                    return <Card suit={item.suit} value={item.value} id={item.id} />
                 }}
             />
         </View>

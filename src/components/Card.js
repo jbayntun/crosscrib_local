@@ -8,11 +8,11 @@ var SUITS = {
     spades: {color:'black', icon: '♠'}
 };
 
-const Card = ({suit, value}) => {
-    if (suit === 'empty')
+const Card = ({suit, value, id}) => {
+    if (suit === null)
     {
         return <View style={styles.empty}>
-            <Text>{value}</Text>
+            <Text>{id}</Text>
         </View>
     }
 
