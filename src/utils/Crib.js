@@ -17,18 +17,20 @@ const VALUES = {
 
 class Crib {
 
-    static scoreHand(cards){
-        console.log('sh');
+    static scoreHand(cards, isCrib){
         var score = 0;
         // check 15's
         score += this.scoreFifteens(cards);
         // check pairs
-
+        score += this.scorePairs(cards);
         // check runs
-
+        score += this.scoreRuns(cards);
         // check flush
-
-        // check nibs
+        score += this.scoreFlushes(cards, isCrib);
+        // check nob
+        score += this.scoreNob(cards);
+        // check heels
+        score += this.scoreHeels(cards, isCrib);
 
         return score;
     }
@@ -96,39 +98,31 @@ class Crib {
 
     // expected input is a hand of cards
     // returns the total score for all pairs the hand
-    // 4 points if everything but the cut is same suit, 5 points if the cut matches
-    static scoreFlushes(cards) {
-        var cut_suit = null;
-        var suit = null;
-
-        for(let i = 0; i < cards.length; i++){
-            if(cards[i].iscut && cards[i].suit){
-                // save the cut suit, as long as it isn't an empty card
-                cut_suit = cards[i].suit;
-            }
-            else {
-                if(!cards[i].suit){
-                    // return 0 if any empty cards are present
-                    return 0;
-                }
-
-                if(!suit) {
-                    suit = cards[i].suit;
-                    continue;
-                }
-
-                if(cards[i].suit != suit){
-                    // suit is set and doesn't match current card
-                    return 0;
+    // hands can have 4 or 5 cards of same suit, one point each.
+    // crib must have all 5
+    static scoreFlushes(cards, isCrib) {
+        var map = new Map();
+        for(var i = 0; i < cards.length; i++){
+            if(cards[i].suit) {
+                if(map.has(cards[i].suit)) {
+                    map.set(cards[i].suit, map.get(cards[i].suit) + 1);
+                } else {
+                    map.set(cards[i].suit, 1);
                 }
             }
         }
 
-        if(cut_suit == suit){
-            return 5;
+        for (let value of map.values()) {
+            if(value === 5) {
+                return 5;
+            }
+
+            if(value === 4 && !isCrib) {
+                return 4;
+            }
         }
 
-        return 4;
+        return 0;
     }
 
     // expected input is a hand of cards
@@ -172,6 +166,32 @@ class Crib {
         // in case of king-high run, will exit loop without returning
         if (connected > 2) {
             return connected * multiplier;
+        }
+
+        return 0;
+    }
+
+    // expected input is a hand of cards
+    // returns 1 if the hand has a jack who's suit matches the cut
+    // hand must have a cut
+    static scoreNob(cards) {
+        const cut = cards.find(element => element.iscut);
+        if(cut) {
+            for(let i = 0; i < cards.length; i++) {
+                if(!cards[i].iscut && cards[i].value === "J" && cards[i].suit === cut.suit) {
+                    return 1;
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    static scoreHeels(cards, isCrib) {
+        if(isCrib && cards.some((card) => {
+            return card.iscut && card.value === "J";
+        })) {
+            return 2;
         }
 
         return 0;

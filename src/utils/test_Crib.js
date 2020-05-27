@@ -14,8 +14,8 @@ function validateExpected(expected, actual, title) {
 var hands = [
     {
         cards: [
-            {suit: "clubs", value: "6", iscut: true},
-            {suit: "diamonds", value: "J"},
+            {suit: "clubs", value: "6"},
+            {suit: "diamonds", value: "J", iscut: true},
             {suit: "hearts", value: "5"},
             {suit: "spades", value: "4"},
             {suit: "diamonds", value: "5"}
@@ -24,8 +24,9 @@ var hands = [
         runs: 6,
         pairs: 2,
         flush: 0,
-        nobs: 0,
-        title: "1"
+        nob: 0,
+        title: "1",
+        heels:0
     },
     {
         cards: [
@@ -39,8 +40,9 @@ var hands = [
         runs: 0,
         pairs: 4,
         flush: 0,
-        nobs: 0,
-        title: "2"
+        nob: 0,
+        title: "2",
+        heels:0
     },
     {
         cards: [
@@ -54,8 +56,9 @@ var hands = [
         runs: 6,
         pairs: 2,
         flush: 0,
-        nobs: 1,
-        title: "3"
+        nob: 1,
+        title: "3",
+        heels:0
     },
     {
         cards: [
@@ -69,8 +72,9 @@ var hands = [
         runs: 0,
         pairs: 12,
         flush: 0,
-        nobs: 1,
-        title: "4"
+        nob: 1,
+        title: "4",
+        heels:0
     },
     {
         cards: [
@@ -84,8 +88,9 @@ var hands = [
         runs: 4,
         pairs: 0,
         flush: 4,
-        nobs: 0,
-        title: "5"
+        nob: 0,
+        title: "5",
+        heels:0
     },
     {
         cards: [
@@ -99,8 +104,9 @@ var hands = [
         runs: 0,
         pairs: 6,
         flush: 0,
-        nobs: 0,
-        title: "6"
+        nob: 0,
+        title: "6",
+        heels:0
     },
     {
         cards: [
@@ -114,8 +120,9 @@ var hands = [
         runs: 0,
         pairs: 0,
         flush: 0,
-        nobs: 0,
-        title: "7"
+        nob: 0,
+        title: "7",
+        heels:0
     },
     {
         cards: [
@@ -129,8 +136,9 @@ var hands = [
         runs: 0,
         pairs: 0,
         flush: 0,
-        nobs: 0,
-        title: "8"
+        nob: 0,
+        title: "8",
+        heels:0
     },
     {
         cards: [
@@ -144,8 +152,9 @@ var hands = [
         runs: 8,
         pairs: 2,
         flush: 0,
-        nobs: 0,
-        title: "9"
+        nob: 0,
+        title: "9",
+        heels:0
     },
     {
         cards: [
@@ -159,8 +168,9 @@ var hands = [
         runs: 12,
         pairs: 4,
         flush: 0,
-        nobs: 0,
-        title: "10"
+        nob: 0,
+        title: "10",
+        heels:0
     },
     {
         cards: [
@@ -174,8 +184,44 @@ var hands = [
         runs: 9,
         pairs: 6,
         flush: 0,
-        nobs: 0,
-        title: "11"
+        nob: 0,
+        title: "11",
+        heels:0
+    }
+];
+
+var cribs = [
+    {
+        cards: [
+            {suit: "clubs", value: "7", iscut: true},
+            {suit: "diamonds", value: "J"},
+            {suit: "hearts", value: "7"},
+            {suit: "spades", value: "8"},
+            {suit: "diamonds", value: "6"}
+        ],
+        fifteens: 4,
+        runs: 6,
+        pairs: 2,
+        flush: 0,
+        nob: 0,
+        title: "c1",
+        heels: 0
+    },
+    {
+        cards: [
+            {suit: "clubs", value: "7"},
+            {suit: "diamonds", value: "J", iscut: true},
+            {suit: "hearts", value: "7"},
+            {suit: "spades", value: "8"},
+            {suit: "diamonds", value: "6"}
+        ],
+        fifteens: 4,
+        runs: 6,
+        pairs: 2,
+        flush: 0,
+        nob: 0,
+        title: "c2",
+        heels: 2
     }
 ];
 
@@ -221,6 +267,55 @@ for(let i = 0; i < hands.length; i++) {
         FAILS++;
     }
 
+    // test nobs
+    if(!validateExpected(
+        hands[i].nob,
+        Crib.scoreNob(hands[i].cards),
+        hands[i].title + "_nobs"
+    )) {
+        FAILS++;
+    }
+
+    // test totals
+    if(!validateExpected(
+        hands[i].nob + hands[i].runs + hands[i].flush + hands[i].pairs + hands[i].fifteens + hands[i].heels,
+        Crib.scoreHand(hands[i].cards),
+        hands[i].title + "_total"
+    )) {
+        FAILS++;
+    }
+
+}
+
+
+for (let i in cribs) {
+    console.log("\nTesting crib " + cribs[i].title)
+    // test crib flush
+    if(!validateExpected(
+        cribs[i].flush,
+        Crib.scoreFlushes(cribs[i].cards, true),
+        cribs[i].title + "_flushes"
+    )) {
+        FAILS++;
+    }
+
+    // test crib flush
+    if(!validateExpected(
+        cribs[i].heels,
+        Crib.scoreHeels(cribs[i].cards, true),
+        cribs[i].title + "_heels"
+    )) {
+        FAILS++;
+    }
+
+    // test totals
+    if(!validateExpected(
+        cribs[i].nob + cribs[i].runs + cribs[i].flush + cribs[i].pairs + cribs[i].fifteens + cribs[i].heels,
+        Crib.scoreHand(cribs[i].cards, true),
+        cribs[i].title + "_total"
+    )) {
+        FAILS++;
+    }
 }
 
 console.log("\n*****************************************\n");
