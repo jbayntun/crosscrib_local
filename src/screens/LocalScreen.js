@@ -1,9 +1,9 @@
-import React, { useEffect, useReducer } from 'react';
-import { Text, StyleSheet, View, Button, FlatList } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Text, StyleSheet, View, Button, FlatList, TouchableOpacity } from 'react-native';
 
 import Card from '../components/Card'
 import CardRow from '../components/CardRow'
-const CardDeck = require('../utils/CardDeck.js');
+const CardDeck = require('../utils/CardDeck.js').CardDeck;
 const Crib = require('../utils/Crib.js');
 
 const GRID_SIZE = 5;
@@ -11,53 +11,78 @@ const deck = new CardDeck();
 var R = 0;
 var C = 0;
 
-// payload format: {id: 'rX_cX', value: 'K', suit: 'spades' }
-const updateDisplayCards = (cards, payload) => {
-    let c = cards.find(card => card.id === payload.id);
-    c.value = payload.card.value;
-    c.suit = payload.card.suit;
-    c.count = payload.card.count;
+
+const updateDisplayCards = (cards, position, newCard) => {
+    var newCards = [...cards];
+
+    let c = newCards.find(card => card.id === position);
+    c.value = newCard.value;
+    c.suit = newCard.suit;
+    c.count = newCard.count;
 
     return cards;
 };
 
-const updateScores = (state, payload) => {
-    let rows = [...state.scores.rows];
-    let cols = [...state.scores.columns];
-
-    // calculate score based on new card
-    let col = payload.id[4];
-    let row = payload.id[1];
-
-    let rhand = state.displayCards.filter(card => card.id.includes(payload.id.slice(0,2)));
-    let chand = state.displayCards.filter(card => card.id.includes(payload.id.slice(3)));
-
-    let rscore = Crib.scoreHand(rhand);
-    let cscore = Crib.scoreHand(chand);
-
-    console.log('row: ' + rscore);
-    console.log('col: ' + cscore)
-    // update values for display
-
-    return {rows: rows, columns: cols};
-};
-
-const reducer = (state, action) => {
-    switch (action.type) {
-        case 'change_displayCards':
-            return {
-                ...state,
-                displayCards: updateDisplayCards(state.displayCards, action.payload),
-                scores: updateScores(state, action.payload)
-            };
-        case 'change_crib':
-            return state;
-        default:
-            return state;
+const getCribDisplay = (position, action, crib, activeCard, setActiveCard, setCrib) => {
+    if(position[0] === 'r') {
+        if(action === 'columns') {
+            return (crib[position].suit) ? <View style={styles.cribRFull}/> : <View style={styles.cribR}/> ;
+        } else {
+            if(crib[position].suit) {
+                return <View style={styles.cribRFull}/> ;
+            }
+            return (!activeCard.suit) ? <View style={styles.cribR}/> : <TouchableOpacity style={styles.cribR} onPress={() => {
+                updateCrib(crib, position, activeCard, setCrib);
+                setActiveCard({suit:null, value:null});
+            }}/>
+        }
+    } else {
+        if(action === 'rows') {
+            return (crib[position].suit) ? <View style={styles.cribCFull}/> : <View style={styles.cribC}/> ;
+        } else {
+            if(crib[position].suit) {
+                return <View style={styles.cribCFull}/> ;
+            }
+            return (!activeCard.suit) ? <View style={styles.cribC}/> : <TouchableOpacity style={styles.cribC} onPress={() => {
+                updateCrib(crib, position, activeCard, setCrib);
+                setActiveCard({suit:null, value:null});
+            }}/>
+        }
     }
 };
 
-const initializeState = () => {
+const updateCrib = (crib, position, card, setCrib) => {
+    var newCrib = {r1: {}, r2: {}, c1:{}, c2:{}};
+
+    Object.assign(newCrib.r1, crib.r1);
+    Object.assign(newCrib.r2, crib.r2);
+    Object.assign(newCrib.c1, crib.c1);
+    Object.assign(newCrib.c2, crib.c2);
+
+    newCrib[position] = card;
+    setCrib(newCrib);
+};
+
+// should be an updated layout of the cards with the position that has changed.
+const updateScores = (scores, cards, newPosition) => {
+    var newscores = {};
+    newscores.rows = [...scores.rows];
+    newscores.columns = [...scores.columns];
+
+    // calculate score based on new card
+    let col = newPosition[4];
+    let row = newPosition[1];
+
+    let rhand = cards.filter(card => card.id.includes(newPosition.slice(0,2)));
+    let chand = cards.filter(card => card.id.includes(newPosition.slice(3)));
+
+    newscores.rows[row] = Crib.scoreHand(rhand);
+    newscores.columns[col] = Crib.scoreHand(chand);
+
+    return newscores;
+};
+
+const initializeDisplayCards = () => {
     const displayCards = []
     for(let r = 0; r < GRID_SIZE; r++) {
         for(let c = 0; c < GRID_SIZE; c++) {
@@ -66,37 +91,130 @@ const initializeState = () => {
         }
     }
 
-    // TODO associate players with subtotal scores
-    const scores = {rows: [0,0,0,0,0], columns: [0,0,0,0,0]};
-
-    return {displayCards: displayCards, scores: scores};
+    return displayCards;
 };
 
 const LocalScreen = () => {
-    const [state, dispatch] = useReducer(reducer, initializeState());
+    const [scores, setScores] = useState({rows: [0,0,0,0,0], columns: [0,0,0,0,0]});
+    const [activeCard, setActiveCard] = useState({suit: null, value: null});
+    const [crib, setCrib] = useState({
+        r1: {suit: null, value: null},
+        r2: {suit: null, value: null},
+        c1: {suit: null, value: null},
+        c2: {suit: null, value: null}
+    });
+    const [displayCards, setDisplayCards] = useState(initializeDisplayCards);
+    const [action, setAction] = useState('columns');
+    const [names, setNames] = useState({rows: 'ROWS', columns: 'COLUMNS'});
 
     return (
         <View style={styles.container}>
-            <Button
-                title="Draw a card"
-                onPress={() => {
-                    if(C == 5){
-                        R++;
-                        C=0;
-                    }
+            <View style={styles.playArea}>
 
-                    let id = 'r' + R + '_c' + C;
-                    let card = deck.draw();
-                    C++;
+                <View style={styles.row}>
+                    <CardRow
+                        spots={displayCards.slice(0,5)}
+                        activeCard={activeCard}
+                        placeCard={(newPos) => {
+                            setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
+                            setScores(updateScores(scores, displayCards, newPos));
+                            setActiveCard({suit: null, value: null});
+                        }}
+                    />
+                    <Text style={styles.score}>{scores.rows[0]}</Text>
+                </View>
 
-                    dispatch({ type: 'change_displayCards', payload: {id: id, card: card }});
-                }}
-            />
-            <CardRow spots={state.displayCards.slice(0,5)}/>
-            <CardRow spots={state.displayCards.slice(5,10)}/>
-            <CardRow spots={state.displayCards.slice(10,15)}/>
-            <CardRow spots={state.displayCards.slice(15,20)}/>
-            <CardRow spots={state.displayCards.slice(20,25)}/>
+                <View style={styles.row}>
+                    <CardRow
+                        spots={displayCards.slice(5,10)}
+                        activeCard={activeCard}
+                        placeCard={(newPos) => {
+                            setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
+                            setScores(updateScores(scores, displayCards, newPos));
+                            setActiveCard({suit: null, value: null});
+                        }}
+                    />
+                    <Text style={styles.score}>{scores.rows[1]}</Text>
+                </View>
+
+                <View style={styles.row}>
+                    <CardRow
+                        spots={displayCards.slice(10,15)}
+                        activeCard={activeCard}
+                        placeCard={(newPos) => {
+                            setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
+                            setScores(updateScores(scores, displayCards, newPos));
+                            setActiveCard({suit: null, value: null});
+                        }}
+                    />
+                    <Text style={styles.score}>{scores.rows[2]}</Text>
+                </View>
+
+                <View style={styles.row}>
+                    <CardRow
+                        spots={displayCards.slice(15,20)}
+                        activeCard={activeCard}
+                        placeCard={(newPos) => {
+                            setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
+                            setScores(updateScores(scores, displayCards, newPos));
+                            setActiveCard({suit: null, value: null});
+                        }}
+                    />
+                    <Text style={styles.score}>{scores.rows[3]}</Text>
+                </View>
+
+                <View style={styles.row}>
+                    <CardRow
+                        spots={displayCards.slice(20,25)}
+                        activeCard={activeCard}
+                        placeCard={(newPos) => {
+                            setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
+                            setScores(updateScores(scores, displayCards, newPos));
+                            setActiveCard({suit: null, value: null});
+                        }}
+                    />
+                    <Text style={styles.score}>{scores.rows[4]}</Text>
+                </View>
+
+                <FlatList
+                    data={scores.columns}
+                    horizontal={true}
+                    keyExtractor={(item, index) => '' + index}
+                    renderItem={({ item }) => {
+                        return <Text style={styles.scoreRows}>{item}</Text>
+                    }}
+                    style={{marginLeft: 15}}
+                />
+            </View>
+
+            <Text style={styles.totals}>Total Columns: {scores.columns.reduce((accumulator, currentValue) => {
+                    return accumulator + currentValue;})}
+            </Text>
+            <Text style={styles.totals}>Total Rows: {scores.rows.reduce((accumulator, currentValue) => {
+                return accumulator + currentValue;})}
+            </Text>
+
+            <View style={styles.deckContainer}>
+                <Card suit={activeCard.suit} value={activeCard.value} />
+                <TouchableOpacity onPress={() => {
+                            if(!activeCard.suit){
+                                setActiveCard(deck.draw());
+                            }
+                        }}>
+                    <View style={styles.deck} />
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.cribRContainer}>
+                { getCribDisplay('r1', action, crib, activeCard, setActiveCard, setCrib) }
+                { getCribDisplay('r2', action, crib, activeCard, setActiveCard, setCrib) }
+            </View>
+
+            <View style={styles.cribCContainer}>
+                { getCribDisplay('c1', action, crib, activeCard, setActiveCard, setCrib) }
+                { getCribDisplay('c2', action, crib, activeCard, setActiveCard, setCrib) }
+            </View>
+
         </View>
     );
 };
@@ -104,7 +222,84 @@ const LocalScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#d2d2d2',
+    },
+    row: {
+        flexDirection: 'row',
+    },
+    score: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#ffea00',
+        marginHorizontal: 10,
+        marginTop: 20,
+    },
+    scoreRows: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#ffea00',
+        marginRight: 45,
+        marginTop: 10,
+    },
+    totals: {
+        fontSize: 22,
+    },
+    deckContainer: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        position: 'absolute',
+        bottom: 10,
+    },
+    deck: {
+        height: 75,
+        width: 50,
+        backgroundColor: 'blue',
+        borderRadius: 5,
+        marginRight: 60,
+        marginVertical: 3,
+        padding: 1,
+        alignSelf: 'flex-end'
+    },
+    cribR: {
+        width: 75,
+        height: 50,
+        backgroundColor: '#389203',
+        borderRadius: 5,
+        margin: 3,
+    },
+    cribRFull: {
+        width: 75,
+        height: 50,
+        backgroundColor: 'blue',
+        borderRadius: 5,
+        margin: 3,
+    },
+    cribRContainer: {
+        position: 'absolute',
+        right: 5,
+        top: 100,
+    },
+    cribC: {
+        width: 50,
+        height: 75,
+        backgroundColor: '#389203',
+        borderRadius: 5,
+        margin: 3,
+    },
+    cribCFull: {
+        width: 50,
+        height: 75,
+        backgroundColor: 'blue',
+        borderRadius: 5,
+        margin: 3,
+    },
+    cribCContainer: {
+        position: 'absolute',
+        right: 10,
+        bottom: 140,
+        flexDirection: 'row',
     }
+
 });
 
 export default LocalScreen;

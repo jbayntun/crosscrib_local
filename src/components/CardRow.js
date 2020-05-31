@@ -5,15 +5,21 @@ import Card from '../components/Card'
 
 const spots = [{suit:'empty'},{suit:'empty'},{suit:'empty'},{suit:'empty'},{suit:'empty'}]
 
-const CardRow = ({spots}) => {
+const CardRow = ({ spots, activeCard, placeCard }) => {
     return (
-        <View>
+        <View style={styles.container}>
             <FlatList
                 data={spots}
                 horizontal={true}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => {
-                    return <Card suit={item.suit} value={item.value} id={item.id} />
+                    return <Card
+                        suit={item.suit}
+                        value={item.value}
+                        posID={item.id}
+                        activeCard={activeCard}
+                        placeCard={placeCard}
+                    />
                 }}
             />
         </View>

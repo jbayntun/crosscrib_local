@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, StyleSheet, View} from 'react-native';
+import { Text, StyleSheet, View, TouchableOpacity } from 'react-native';
 
 var SUITS = {
     diamonds: {color: 'red', icon: '♦'},
@@ -8,12 +8,20 @@ var SUITS = {
     spades: {color:'black', icon: '♠'}
 };
 
-const Card = ({suit, value, id}) => {
+const Card = ({ suit, value, posID, activeCard, placeCard }) => {
     if (suit === null)
     {
-        return <View style={styles.empty}>
-            <Text>{id}</Text>
-        </View>
+        if(activeCard && activeCard.suit) {
+            return (
+                <TouchableOpacity onPress={() => {
+                    placeCard(posID);
+                }}>
+                    <View style={styles.empty} />
+                </TouchableOpacity>
+            );
+        }
+
+        return <View style={styles.empty} />
     }
 
     return <View style={styles.card}>

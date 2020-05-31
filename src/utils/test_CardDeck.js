@@ -1,4 +1,4 @@
-const CardDeck = require('./CardDeck.js');
+const CardDeck = require('./CardDeck.js').CardDeck;
 
 // test there are no duplicates when accessing all cards.
 // Also tests behaviour after drawing all 52 cards

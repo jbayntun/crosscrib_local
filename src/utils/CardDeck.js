@@ -31,7 +31,7 @@ class CardDeck {
         this.cards = [];
         SUITS.forEach(s => {
             VALUES.forEach(v => {
-                temp = Object.assign({}, v);
+                var temp = Object.assign({}, v);
                 temp.suit = s;
                 this.cards.push(temp)});
         });
