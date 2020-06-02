@@ -1,3 +1,5 @@
+const CardDeck = require('./CardDeck.js').CardDeck;
+
 const VALUES = {
     "A": {count: 1, numeral: 1},
     "2": {count: 2, numeral: 2},
@@ -16,6 +18,23 @@ const VALUES = {
 }
 
 class Crib {
+    constructor() {
+        this.deck = new CardDeck();
+    }
+
+    play() {
+        if(this.deck.cards.length === 52) {
+            var card = this.deck.draw();
+            card.iscut = true;
+            return card;
+        }
+
+        if(this.deck.cards.length > 23) {
+            return this.deck.draw();
+        }
+
+        return null;
+    }
 
     static scoreHand(cards, isCrib){
         var score = 0;

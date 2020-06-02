@@ -87,14 +87,25 @@ const initializeDisplayCards = () => {
     for(let r = 0; r < GRID_SIZE; r++) {
         for(let c = 0; c < GRID_SIZE; c++) {
             let id = 'r' + r + '_c' + c;
-            displayCards.push({id: id, suit:null, value: null});
+            let card = {suit:null, value:null};
+            if(id === 'r2_c2') {
+                card = deck.draw();
+                card.iscut = true;
+            }
+
+            card.id = id;
+            displayCards.push(card);
         }
     }
 
     return displayCards;
 };
 
-const LocalScreen = () => {
+const LocalScreen = ({ navigation }) => {
+    const players = {};
+    players.rows = navigation.getParam('player1');
+    players.columns = navigation.getParam('player2');
+
     const [scores, setScores] = useState({rows: [0,0,0,0,0], columns: [0,0,0,0,0]});
     const [activeCard, setActiveCard] = useState({suit: null, value: null});
     const [crib, setCrib] = useState({
@@ -104,7 +115,7 @@ const LocalScreen = () => {
         c2: {suit: null, value: null}
     });
     const [displayCards, setDisplayCards] = useState(initializeDisplayCards);
-    const [action, setAction] = useState('columns');
+    const [activePlayer, setActivePlayer] = useState('columns');
     const [names, setNames] = useState({rows: 'ROWS', columns: 'COLUMNS'});
 
     return (
@@ -187,32 +198,35 @@ const LocalScreen = () => {
                 />
             </View>
 
-            <Text style={styles.totals}>Total Columns: {scores.columns.reduce((accumulator, currentValue) => {
+            <Text style={styles.totals}>Total {players.columns}: {scores.columns.reduce((accumulator, currentValue) => {
                     return accumulator + currentValue;})}
             </Text>
-            <Text style={styles.totals}>Total Rows: {scores.rows.reduce((accumulator, currentValue) => {
+            <Text style={styles.totals}>Total {players.rows}: {scores.rows.reduce((accumulator, currentValue) => {
                 return accumulator + currentValue;})}
             </Text>
 
-            <View style={styles.deckContainer}>
-                <Card suit={activeCard.suit} value={activeCard.value} />
-                <TouchableOpacity onPress={() => {
-                            if(!activeCard.suit){
-                                setActiveCard(deck.draw());
-                            }
-                        }}>
-                    <View style={styles.deck} />
-                </TouchableOpacity>
+            <View style={styles.active}>
+                <Text style={styles.activeText}>{players[activePlayer]}'s turn, {(activeCard.suit) ? 'place your card.' :'pick a card:'}</Text>
+                <View style={styles.deckContainer}>
+                    <Card suit={activeCard.suit} value={activeCard.value} />
+                    <TouchableOpacity onPress={() => {
+                                if(!activeCard.suit){
+                                    setActiveCard(deck.draw());
+                                }
+                            }}>
+                        <View style={styles.deck} />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <View style={styles.cribRContainer}>
-                { getCribDisplay('r1', action, crib, activeCard, setActiveCard, setCrib) }
-                { getCribDisplay('r2', action, crib, activeCard, setActiveCard, setCrib) }
+                { getCribDisplay('r1', activePlayer, crib, activeCard, setActiveCard, setCrib) }
+                { getCribDisplay('r2', activePlayer, crib, activeCard, setActiveCard, setCrib) }
             </View>
 
             <View style={styles.cribCContainer}>
-                { getCribDisplay('c1', action, crib, activeCard, setActiveCard, setCrib) }
-                { getCribDisplay('c2', action, crib, activeCard, setActiveCard, setCrib) }
+                { getCribDisplay('c1', activePlayer, crib, activeCard, setActiveCard, setCrib) }
+                { getCribDisplay('c2', activePlayer, crib, activeCard, setActiveCard, setCrib) }
             </View>
 
         </View>
@@ -247,15 +261,12 @@ const styles = StyleSheet.create({
     deckContainer: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
-        position: 'absolute',
-        bottom: 10,
     },
     deck: {
         height: 75,
         width: 50,
         backgroundColor: 'blue',
         borderRadius: 5,
-        marginRight: 60,
         marginVertical: 3,
         padding: 1,
         alignSelf: 'flex-end'
@@ -298,6 +309,21 @@ const styles = StyleSheet.create({
         right: 10,
         bottom: 140,
         flexDirection: 'row',
+    },
+    active: {
+        flexDirection: 'row',
+        position: 'absolute',
+        bottom: 10,
+        left: 10,
+        borderWidth: 1,
+        paddingVertical: 2,
+        paddingHorizontal: 10,
+        width: 390,
+        justifyContent: 'space-between',
+    },
+    activeText: {
+        fontSize: 20,
+        marginRight: 15,
     }
 
 });

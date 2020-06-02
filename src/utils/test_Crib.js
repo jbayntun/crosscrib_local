@@ -228,6 +228,7 @@ var cribs = [
 
 FAILS = 0;
 
+
 for(let i = 0; i < hands.length; i++) {
     console.log("\nTesting hand " + hands[i].title)
 
@@ -315,6 +316,50 @@ for (let i in cribs) {
         cribs[i].title + "_total"
     )) {
         FAILS++;
+    }
+
+    // test correct number of cards are returned from the deck
+    // also that there are no duplicates
+    for(let i = 0; i < 10; i++ ) {
+        var myCrib = new Crib();
+        let cards = new Set();
+        var card = myCrib.play();
+
+        if(!validateExpected(
+            true,
+            card.iscut,
+            "testcut_" + i
+        )) {
+            FAILS++;
+            continue;
+        }
+
+        card.iscut = undefined;
+        cards.add(card)
+
+        while(card = myCrib.play()) {
+
+            if(!validateExpected(
+                false,
+                cards.has(card),
+                "testdraw_" + i
+            )) {
+                FAILS++;
+                break;
+            }
+
+            cards.add(card);
+        }
+
+        if(!validateExpected(
+            29,
+            cards.size,
+            "finished_" + i
+        )) {
+            FAILS++;
+            continue;
+        }
+
     }
 }
 
