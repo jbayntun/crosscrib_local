@@ -23,6 +23,7 @@ class Crib {
     }
 
     play() {
+        console.log('enter crib play');
         if(this.deck.cards.length === 52) {
             var card = this.deck.draw();
             card.iscut = true;

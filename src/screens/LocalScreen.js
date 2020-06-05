@@ -3,11 +3,11 @@ import { Text, StyleSheet, View, Button, FlatList, TouchableOpacity } from 'reac
 
 import Card from '../components/Card'
 import CardRow from '../components/CardRow'
-const CardDeck = require('../utils/CardDeck.js').CardDeck;
 const Crib = require('../utils/Crib.js');
 
 const GRID_SIZE = 5;
-const deck = new CardDeck();
+const cribGame = new Crib();
+var nextCard = null;
 var R = 0;
 var C = 0;
 
@@ -23,7 +23,7 @@ const updateDisplayCards = (cards, position, newCard) => {
     return cards;
 };
 
-const getCribDisplay = (position, action, crib, activeCard, setActiveCard, setCrib) => {
+const getCribDisplay = (position, action, crib, activeCard, setActiveCard, setCrib, navigation) => {
     if(position[0] === 'r') {
         if(action === 'columns') {
             return (crib[position].suit) ? <View style={styles.cribRFull}/> : <View style={styles.cribR}/> ;
@@ -34,6 +34,7 @@ const getCribDisplay = (position, action, crib, activeCard, setActiveCard, setCr
             return (!activeCard.suit) ? <View style={styles.cribR}/> : <TouchableOpacity style={styles.cribR} onPress={() => {
                 updateCrib(crib, position, activeCard, setCrib);
                 setActiveCard({suit:null, value:null});
+                finishPlay(navigation);
             }}/>
         }
     } else {
@@ -46,6 +47,7 @@ const getCribDisplay = (position, action, crib, activeCard, setActiveCard, setCr
             return (!activeCard.suit) ? <View style={styles.cribC}/> : <TouchableOpacity style={styles.cribC} onPress={() => {
                 updateCrib(crib, position, activeCard, setCrib);
                 setActiveCard({suit:null, value:null});
+                finishPlay(navigation);
             }}/>
         }
     }
@@ -89,8 +91,8 @@ const initializeDisplayCards = () => {
             let id = 'r' + r + '_c' + c;
             let card = {suit:null, value:null};
             if(id === 'r2_c2') {
-                card = deck.draw();
-                card.iscut = true;
+                card = cribGame.play();
+                nextCard = cribGame.play();
             }
 
             card.id = id;
@@ -99,6 +101,15 @@ const initializeDisplayCards = () => {
     }
 
     return displayCards;
+};
+
+const finishPlay = (navigation) => {
+    nextCard = cribGame.play();
+    if(!nextCard) {
+        console.log('end round');
+        navigation.navigate('EndRound');
+    }
+
 };
 
 const LocalScreen = ({ navigation }) => {
@@ -130,6 +141,8 @@ const LocalScreen = ({ navigation }) => {
                             setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
                             setScores(updateScores(scores, displayCards, newPos));
                             setActiveCard({suit: null, value: null});
+                            setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
+                            finishPlay(navigation);
                         }}
                     />
                     <Text style={styles.score}>{scores.rows[0]}</Text>
@@ -143,6 +156,8 @@ const LocalScreen = ({ navigation }) => {
                             setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
                             setScores(updateScores(scores, displayCards, newPos));
                             setActiveCard({suit: null, value: null});
+                            setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
+                            finishPlay(navigation);
                         }}
                     />
                     <Text style={styles.score}>{scores.rows[1]}</Text>
@@ -156,6 +171,8 @@ const LocalScreen = ({ navigation }) => {
                             setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
                             setScores(updateScores(scores, displayCards, newPos));
                             setActiveCard({suit: null, value: null});
+                            setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
+                            finishPlay(navigation);
                         }}
                     />
                     <Text style={styles.score}>{scores.rows[2]}</Text>
@@ -169,6 +186,8 @@ const LocalScreen = ({ navigation }) => {
                             setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
                             setScores(updateScores(scores, displayCards, newPos));
                             setActiveCard({suit: null, value: null});
+                            setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
+                            finishPlay(navigation);
                         }}
                     />
                     <Text style={styles.score}>{scores.rows[3]}</Text>
@@ -182,6 +201,8 @@ const LocalScreen = ({ navigation }) => {
                             setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
                             setScores(updateScores(scores, displayCards, newPos));
                             setActiveCard({suit: null, value: null});
+                            setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
+                            finishPlay(navigation);
                         }}
                     />
                     <Text style={styles.score}>{scores.rows[4]}</Text>
@@ -211,7 +232,7 @@ const LocalScreen = ({ navigation }) => {
                     <Card suit={activeCard.suit} value={activeCard.value} />
                     <TouchableOpacity onPress={() => {
                                 if(!activeCard.suit){
-                                    setActiveCard(deck.draw());
+                                    setActiveCard(nextCard);
                                 }
                             }}>
                         <View style={styles.deck} />
@@ -220,13 +241,13 @@ const LocalScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.cribRContainer}>
-                { getCribDisplay('r1', activePlayer, crib, activeCard, setActiveCard, setCrib) }
-                { getCribDisplay('r2', activePlayer, crib, activeCard, setActiveCard, setCrib) }
+                { getCribDisplay('r1', activePlayer, crib, activeCard, setActiveCard, setCrib, navigation) }
+                { getCribDisplay('r2', activePlayer, crib, activeCard, setActiveCard, setCrib, navigation) }
             </View>
 
             <View style={styles.cribCContainer}>
-                { getCribDisplay('c1', activePlayer, crib, activeCard, setActiveCard, setCrib) }
-                { getCribDisplay('c2', activePlayer, crib, activeCard, setActiveCard, setCrib) }
+                { getCribDisplay('c1', activePlayer, crib, activeCard, setActiveCard, setCrib, navigation) }
+                { getCribDisplay('c2', activePlayer, crib, activeCard, setActiveCard, setCrib, navigation) }
             </View>
 
         </View>
