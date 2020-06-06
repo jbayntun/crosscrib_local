@@ -8,9 +8,13 @@ var SUITS = {
     spades: {color:'black', icon: '♠'}
 };
 
-const Card = ({ suit, value, posID, activeCard, placeCard }) => {
+const Card = ({ suit, value, posID, activeCard, placeCard, cribPlayer, activePlayer }) => {
     if (suit === null)
     {
+        if(cribPlayer && activePlayer != cribPlayer) {
+            return <View style={styles.empty} />;
+        }
+
         if(activeCard && activeCard.suit) {
             return (
                 <TouchableOpacity onPress={() => {
@@ -21,7 +25,11 @@ const Card = ({ suit, value, posID, activeCard, placeCard }) => {
             );
         }
 
-        return <View style={styles.empty} />
+        return <View style={styles.empty} />;
+    }
+
+    if(cribPlayer) {
+        return <View style={styles.full} />;
     }
 
     return <View style={styles.card}>
@@ -48,6 +56,13 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         margin: 3,
         fontSize: 10,
+    },
+    full: {
+        width: 50,
+        height: 75,
+        backgroundColor: 'blue',
+        borderRadius: 5,
+        margin: 3,
     }
 });
 

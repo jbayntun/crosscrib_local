@@ -3,6 +3,8 @@ import { Text, StyleSheet, View, Button, FlatList, TouchableOpacity } from 'reac
 
 import Card from '../components/Card'
 import CardRow from '../components/CardRow'
+import CribPart from '../components/CribPart'
+
 const Crib = require('../utils/Crib.js');
 
 const GRID_SIZE = 5;
@@ -21,36 +23,6 @@ const updateDisplayCards = (cards, position, newCard) => {
     c.count = newCard.count;
 
     return cards;
-};
-
-const getCribDisplay = (position, action, crib, activeCard, setActiveCard, setCrib, navigation) => {
-    if(position[0] === 'r') {
-        if(action === 'columns') {
-            return (crib[position].suit) ? <View style={styles.cribRFull}/> : <View style={styles.cribR}/> ;
-        } else {
-            if(crib[position].suit) {
-                return <View style={styles.cribRFull}/> ;
-            }
-            return (!activeCard.suit) ? <View style={styles.cribR}/> : <TouchableOpacity style={styles.cribR} onPress={() => {
-                updateCrib(crib, position, activeCard, setCrib);
-                setActiveCard({suit:null, value:null});
-                finishPlay(navigation);
-            }}/>
-        }
-    } else {
-        if(action === 'rows') {
-            return (crib[position].suit) ? <View style={styles.cribCFull}/> : <View style={styles.cribC}/> ;
-        } else {
-            if(crib[position].suit) {
-                return <View style={styles.cribCFull}/> ;
-            }
-            return (!activeCard.suit) ? <View style={styles.cribC}/> : <TouchableOpacity style={styles.cribC} onPress={() => {
-                updateCrib(crib, position, activeCard, setCrib);
-                setActiveCard({suit:null, value:null});
-                finishPlay(navigation);
-            }}/>
-        }
-    }
 };
 
 const updateCrib = (crib, position, card, setCrib) => {
@@ -127,6 +99,7 @@ const LocalScreen = ({ navigation }) => {
     });
     const [displayCards, setDisplayCards] = useState(initializeDisplayCards);
     const [activePlayer, setActivePlayer] = useState('columns');
+    const cribPlayer = (Math.floor(Math.random() * Math.floor(9999)) % 2 == 0) ? 'columns' : 'rows';
     const [names, setNames] = useState({rows: 'ROWS', columns: 'COLUMNS'});
 
     return (
@@ -219,15 +192,44 @@ const LocalScreen = ({ navigation }) => {
                 />
             </View>
 
-            <Text style={styles.totals}>Total {players.columns}: {scores.columns.reduce((accumulator, currentValue) => {
-                    return accumulator + currentValue;})}
-            </Text>
-            <Text style={styles.totals}>Total {players.rows}: {scores.rows.reduce((accumulator, currentValue) => {
-                return accumulator + currentValue;})}
-            </Text>
+            <View style={styles.cribArea}>
+                <CribPart
+                    name={players.rows}
+                    player='rows'
+                    cards={[crib.r1, crib.r2]}
+                    activeCard={activeCard}
+                    activePlayer={activePlayer}
+                    total={scores.rows.reduce((accumulator, currentValue) => {
+                        return accumulator + currentValue;})}
+                    touchCallback={(position) => {
+                        console.log('called' + position);
+                        updateCrib(crib, position, activeCard, setCrib);
+                        setActiveCard({suit:null, value:null});
+                        finishPlay(navigation);
+                    }}
+                />
+                <CribPart
+                    name={players.columns}
+                    player='columns'
+                    cards={[crib.c1, crib.c2]}
+                    activeCard={activeCard}
+                    activePlayer={activePlayer}
+                    total={scores.columns.reduce((accumulator, currentValue) => {
+                        return accumulator + currentValue;})}
+                    touchCallback={(position) => {
+                        console.log('called' + position);
+                        updateCrib(crib, position, activeCard, setCrib);
+                        setActiveCard({suit:null, value:null});
+                        finishPlay(navigation);
+                    }}
+                />
+            </View>
 
             <View style={styles.active}>
-                <Text style={styles.activeText}>{players[activePlayer]}'s turn, {(activeCard.suit) ? 'place your card.' :'pick a card:'}</Text>
+                <View>
+                    <Text style={styles.activeText}>{players[activePlayer]}'s turn, {(activeCard.suit) ? 'place your card.' :'pick a card:'}</Text>
+                    <Text>The crib belongs to {players[cribPlayer]}</Text>
+                </View>
                 <View style={styles.deckContainer}>
                     <Card suit={activeCard.suit} value={activeCard.value} />
                     <TouchableOpacity onPress={() => {
@@ -238,16 +240,6 @@ const LocalScreen = ({ navigation }) => {
                         <View style={styles.deck} />
                     </TouchableOpacity>
                 </View>
-            </View>
-
-            <View style={styles.cribRContainer}>
-                { getCribDisplay('r1', activePlayer, crib, activeCard, setActiveCard, setCrib, navigation) }
-                { getCribDisplay('r2', activePlayer, crib, activeCard, setActiveCard, setCrib, navigation) }
-            </View>
-
-            <View style={styles.cribCContainer}>
-                { getCribDisplay('c1', activePlayer, crib, activeCard, setActiveCard, setCrib, navigation) }
-                { getCribDisplay('c2', activePlayer, crib, activeCard, setActiveCard, setCrib, navigation) }
             </View>
 
         </View>
@@ -276,9 +268,6 @@ const styles = StyleSheet.create({
         marginRight: 45,
         marginTop: 10,
     },
-    totals: {
-        fontSize: 22,
-    },
     deckContainer: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
@@ -291,45 +280,6 @@ const styles = StyleSheet.create({
         marginVertical: 3,
         padding: 1,
         alignSelf: 'flex-end'
-    },
-    cribR: {
-        width: 75,
-        height: 50,
-        backgroundColor: '#389203',
-        borderRadius: 5,
-        margin: 3,
-    },
-    cribRFull: {
-        width: 75,
-        height: 50,
-        backgroundColor: 'blue',
-        borderRadius: 5,
-        margin: 3,
-    },
-    cribRContainer: {
-        position: 'absolute',
-        right: 5,
-        top: 100,
-    },
-    cribC: {
-        width: 50,
-        height: 75,
-        backgroundColor: '#389203',
-        borderRadius: 5,
-        margin: 3,
-    },
-    cribCFull: {
-        width: 50,
-        height: 75,
-        backgroundColor: 'blue',
-        borderRadius: 5,
-        margin: 3,
-    },
-    cribCContainer: {
-        position: 'absolute',
-        right: 10,
-        bottom: 140,
-        flexDirection: 'row',
     },
     active: {
         flexDirection: 'row',
@@ -345,6 +295,11 @@ const styles = StyleSheet.create({
     activeText: {
         fontSize: 20,
         marginRight: 15,
+    },
+    cribArea: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+
     }
 
 });
