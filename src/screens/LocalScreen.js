@@ -10,9 +10,6 @@ const Crib = require('../utils/Crib.js');
 const GRID_SIZE = 5;
 const cribGame = new Crib();
 var nextCard = null;
-var R = 0;
-var C = 0;
-
 
 const updateDisplayCards = (cards, position, newCard) => {
     var newCards = [...cards];
@@ -56,6 +53,18 @@ const updateScores = (scores, cards, newPosition) => {
     return newscores;
 };
 
+const getTotal = (player, scores, crib, cribPlayer, gameOver, cards) => {
+    let total = scores[player].reduce((accumulator, currentValue) => {
+        return accumulator + currentValue;});
+
+    if(gameOver && player === cribPlayer) {
+        console.log(cards[12]);
+        total += Crib.scoreHand([cards[12], crib.r1, crib.r2, crib.c1, crib.c2]);
+    }
+
+    return total;
+}
+
 const initializeDisplayCards = () => {
     const displayCards = []
     for(let r = 0; r < GRID_SIZE; r++) {
@@ -75,13 +84,12 @@ const initializeDisplayCards = () => {
     return displayCards;
 };
 
-const finishPlay = (navigation) => {
+const finishPlay = (setGameOver) => {
     nextCard = cribGame.play();
     if(!nextCard) {
         console.log('end round');
-        navigation.navigate('EndRound');
+        setGameOver(true);
     }
-
 };
 
 const LocalScreen = ({ navigation }) => {
@@ -98,9 +106,10 @@ const LocalScreen = ({ navigation }) => {
         c2: {suit: null, value: null}
     });
     const [displayCards, setDisplayCards] = useState(initializeDisplayCards);
-    const [activePlayer, setActivePlayer] = useState('columns');
-    const cribPlayer = (Math.floor(Math.random() * Math.floor(9999)) % 2 == 0) ? 'columns' : 'rows';
+    const cribPlayer = ('rows');
+    const [activePlayer, setActivePlayer] = useState((cribPlayer === 'rows') ? 'columns': 'rows'); // first card goes to player who does NOT own crib
     const [names, setNames] = useState({rows: 'ROWS', columns: 'COLUMNS'});
+    const [gameOver, setGameOver] = useState(false);
 
     return (
         <View style={styles.container}>
@@ -115,7 +124,7 @@ const LocalScreen = ({ navigation }) => {
                             setScores(updateScores(scores, displayCards, newPos));
                             setActiveCard({suit: null, value: null});
                             setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
-                            finishPlay(navigation);
+                            finishPlay(setGameOver);
                         }}
                     />
                     <Text style={styles.score}>{scores.rows[0]}</Text>
@@ -130,7 +139,7 @@ const LocalScreen = ({ navigation }) => {
                             setScores(updateScores(scores, displayCards, newPos));
                             setActiveCard({suit: null, value: null});
                             setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
-                            finishPlay(navigation);
+                            finishPlay(setGameOver);
                         }}
                     />
                     <Text style={styles.score}>{scores.rows[1]}</Text>
@@ -145,7 +154,7 @@ const LocalScreen = ({ navigation }) => {
                             setScores(updateScores(scores, displayCards, newPos));
                             setActiveCard({suit: null, value: null});
                             setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
-                            finishPlay(navigation);
+                            finishPlay(setGameOver);
                         }}
                     />
                     <Text style={styles.score}>{scores.rows[2]}</Text>
@@ -160,7 +169,7 @@ const LocalScreen = ({ navigation }) => {
                             setScores(updateScores(scores, displayCards, newPos));
                             setActiveCard({suit: null, value: null});
                             setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
-                            finishPlay(navigation);
+                            finishPlay(setGameOver);
                         }}
                     />
                     <Text style={styles.score}>{scores.rows[3]}</Text>
@@ -175,7 +184,7 @@ const LocalScreen = ({ navigation }) => {
                             setScores(updateScores(scores, displayCards, newPos));
                             setActiveCard({suit: null, value: null});
                             setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
-                            finishPlay(navigation);
+                            finishPlay(setGameOver);
                         }}
                     />
                     <Text style={styles.score}>{scores.rows[4]}</Text>
@@ -199,13 +208,13 @@ const LocalScreen = ({ navigation }) => {
                     cards={[crib.r1, crib.r2]}
                     activeCard={activeCard}
                     activePlayer={activePlayer}
-                    total={scores.rows.reduce((accumulator, currentValue) => {
-                        return accumulator + currentValue;})}
+                    gameOver={gameOver}
+                    total={getTotal('rows', scores, crib, cribPlayer, gameOver, displayCards)}
                     touchCallback={(position) => {
                         console.log('called' + position);
                         updateCrib(crib, position, activeCard, setCrib);
                         setActiveCard({suit:null, value:null});
-                        finishPlay(navigation);
+                        finishPlay(setGameOver);
                     }}
                 />
                 <CribPart
@@ -214,13 +223,13 @@ const LocalScreen = ({ navigation }) => {
                     cards={[crib.c1, crib.c2]}
                     activeCard={activeCard}
                     activePlayer={activePlayer}
-                    total={scores.columns.reduce((accumulator, currentValue) => {
-                        return accumulator + currentValue;})}
+                    gameOver={gameOver}
+                    total={getTotal('columns', scores, crib, cribPlayer, gameOver, displayCards)}
                     touchCallback={(position) => {
                         console.log('called' + position);
                         updateCrib(crib, position, activeCard, setCrib);
                         setActiveCard({suit:null, value:null});
-                        finishPlay(navigation);
+                        finishPlay(setGameOver);
                     }}
                 />
             </View>

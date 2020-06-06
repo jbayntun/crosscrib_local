@@ -3,10 +3,10 @@ import { Text, StyleSheet, View, TouchableOpacity } from 'react-native';
 
 import Card from '../components/Card'
 
-const CribPart = ({ name, player, cards, activeCard, activePlayer, total, touchCallback }) => {
+const CribPart = ({ name, player, cards, activeCard, activePlayer, gameOver, total, touchCallback }) => {
 
     return <View style={styles.container}>
-        <Text style={{ color: 'white' }}>{name}</Text>
+        <Text style={{ color: 'white' }}>{name} - {player}</Text>
         <View style={styles.cardContainer}>
             <Card
                 suit={cards[0].suit}
@@ -16,6 +16,7 @@ const CribPart = ({ name, player, cards, activeCard, activePlayer, total, touchC
                 placeCard={touchCallback}
                 cribPlayer={player}
                 activePlayer={activePlayer}
+                gameOver={gameOver}
             />
             <Card
                 suit={cards[1].suit}
@@ -25,6 +26,7 @@ const CribPart = ({ name, player, cards, activeCard, activePlayer, total, touchC
                 placeCard={touchCallback}
                 cribPlayer={player}
                 activePlayer={activePlayer}
+                gameOver={gameOver}
             />
         </View>
         <Text style={{ color: 'white' }}>Total: {total}</Text>

@@ -18,6 +18,7 @@ var SUITS = ["diamonds", "hearts", "clubs", "spades"];
 class CardDeck {
     constructor() {
         this.reset();
+        console.log('new card deck');
     }
 
     draw() {

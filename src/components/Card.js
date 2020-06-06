@@ -8,7 +8,7 @@ var SUITS = {
     spades: {color:'black', icon: '♠'}
 };
 
-const Card = ({ suit, value, posID, activeCard, placeCard, cribPlayer, activePlayer }) => {
+const Card = ({ suit, value, posID, activeCard, placeCard, cribPlayer, activePlayer, gameOver }) => {
     if (suit === null)
     {
         if(cribPlayer && activePlayer != cribPlayer) {
@@ -28,7 +28,7 @@ const Card = ({ suit, value, posID, activeCard, placeCard, cribPlayer, activePla
         return <View style={styles.empty} />;
     }
 
-    if(cribPlayer) {
+    if(cribPlayer && !gameOver) {
         return <View style={styles.full} />;
     }
 
