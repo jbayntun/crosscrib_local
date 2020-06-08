@@ -10,6 +10,7 @@ const Crib = require('../utils/Crib.js');
 const GRID_SIZE = 5;
 const cribGame = new Crib();
 var nextCard = null;
+var boardCount = 0; // track cards placed on board (not in crib)
 
 const updateDisplayCards = (cards, position, newCard) => {
     var newCards = [...cards];
@@ -53,18 +54,6 @@ const updateScores = (scores, cards, newPosition) => {
     return newscores;
 };
 
-const getTotal = (player, scores, crib, cribPlayer, gameOver, cards) => {
-    let total = scores[player].reduce((accumulator, currentValue) => {
-        return accumulator + currentValue;});
-
-    if(gameOver && player === cribPlayer) {
-        console.log(cards[12]);
-        total += Crib.scoreHand([cards[12], crib.r1, crib.r2, crib.c1, crib.c2]);
-    }
-
-    return total;
-}
-
 const initializeDisplayCards = () => {
     const displayCards = []
     for(let r = 0; r < GRID_SIZE; r++) {
@@ -82,14 +71,6 @@ const initializeDisplayCards = () => {
     }
 
     return displayCards;
-};
-
-const finishPlay = (setGameOver) => {
-    nextCard = cribGame.play();
-    if(!nextCard) {
-        console.log('end round');
-        setGameOver(true);
-    }
 };
 
 const LocalScreen = ({ navigation }) => {
@@ -110,6 +91,72 @@ const LocalScreen = ({ navigation }) => {
     const [activePlayer, setActivePlayer] = useState((cribPlayer === 'rows') ? 'columns': 'rows'); // first card goes to player who does NOT own crib
     const [names, setNames] = useState({rows: 'ROWS', columns: 'COLUMNS'});
     const [gameOver, setGameOver] = useState(false);
+    const [totals, setTotals] = useState({rows: 0, columns: 0});
+
+    const playCardToBoard = (newPos) => {
+        setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
+        setScores(updateScores(scores, displayCards, newPos));
+        setActiveCard({suit: null, value: null});
+        setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
+        boardCount++;
+        finishPlay();
+    };
+
+    const calculateTotal = (player) => {
+        let total = scores[player].reduce((accumulator, currentValue) => {
+            return accumulator + currentValue;});
+
+        if(gameOver && player === cribPlayer) {
+            console.log(displayCards[12]);
+            total += Crib.scoreHand([displayCards[12], crib.r1, crib.r2, crib.c1, crib.c2]);
+        }
+
+        return total;
+    }
+
+    const finishPlay = () => {
+        nextCard = cribGame.play();
+
+        // if all cards have been played to board, put remaining cards in crib
+        // this avoids the game being locked if the non-active player still needs to add to crib
+        if(boardCount === 24) {
+            if(!crib.r1.suit) {
+                crib.r1 = nextCard;
+                nextCard = cribGame.play();
+            }
+            if(!crib.r2.suit) {
+                crib.r2 = nextCard;
+                nextCard = cribGame.play();
+            }
+            if(!crib.c1.suit) {
+                crib.c1 = nextCard;
+                nextCard = cribGame.play();
+            }
+            if(!crib.c2.suit) {
+                crib.c2 = nextCard;
+                nextCard = cribGame.play();
+            }
+        }
+
+        setTotals({rows:calculateTotal('rows'), columns:calculateTotal('columns')});
+
+        if(!nextCard) {
+            setGameOver(true);
+        }
+
+    };
+
+    const getWinMessage = () => {
+        if(totals.rows == totals.columns) {
+            return "It's a tie game!";
+        }
+
+        var message = "The winner is ";
+        message += (totals.rows > totals.columns) ? players['rows']: players['columns'];
+        message += ".";
+
+        return message;
+    };
 
     return (
         <View style={styles.container}>
@@ -119,13 +166,7 @@ const LocalScreen = ({ navigation }) => {
                     <CardRow
                         spots={displayCards.slice(0,5)}
                         activeCard={activeCard}
-                        placeCard={(newPos) => {
-                            setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
-                            setScores(updateScores(scores, displayCards, newPos));
-                            setActiveCard({suit: null, value: null});
-                            setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
-                            finishPlay(setGameOver);
-                        }}
+                        placeCard={playCardToBoard}
                     />
                     <Text style={styles.score}>{scores.rows[0]}</Text>
                 </View>
@@ -134,13 +175,7 @@ const LocalScreen = ({ navigation }) => {
                     <CardRow
                         spots={displayCards.slice(5,10)}
                         activeCard={activeCard}
-                        placeCard={(newPos) => {
-                            setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
-                            setScores(updateScores(scores, displayCards, newPos));
-                            setActiveCard({suit: null, value: null});
-                            setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
-                            finishPlay(setGameOver);
-                        }}
+                        placeCard={playCardToBoard}
                     />
                     <Text style={styles.score}>{scores.rows[1]}</Text>
                 </View>
@@ -149,13 +184,7 @@ const LocalScreen = ({ navigation }) => {
                     <CardRow
                         spots={displayCards.slice(10,15)}
                         activeCard={activeCard}
-                        placeCard={(newPos) => {
-                            setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
-                            setScores(updateScores(scores, displayCards, newPos));
-                            setActiveCard({suit: null, value: null});
-                            setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
-                            finishPlay(setGameOver);
-                        }}
+                        placeCard={playCardToBoard}
                     />
                     <Text style={styles.score}>{scores.rows[2]}</Text>
                 </View>
@@ -164,13 +193,7 @@ const LocalScreen = ({ navigation }) => {
                     <CardRow
                         spots={displayCards.slice(15,20)}
                         activeCard={activeCard}
-                        placeCard={(newPos) => {
-                            setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
-                            setScores(updateScores(scores, displayCards, newPos));
-                            setActiveCard({suit: null, value: null});
-                            setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
-                            finishPlay(setGameOver);
-                        }}
+                        placeCard={playCardToBoard}
                     />
                     <Text style={styles.score}>{scores.rows[3]}</Text>
                 </View>
@@ -179,13 +202,7 @@ const LocalScreen = ({ navigation }) => {
                     <CardRow
                         spots={displayCards.slice(20,25)}
                         activeCard={activeCard}
-                        placeCard={(newPos) => {
-                            setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
-                            setScores(updateScores(scores, displayCards, newPos));
-                            setActiveCard({suit: null, value: null});
-                            setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
-                            finishPlay(setGameOver);
-                        }}
+                        placeCard={playCardToBoard}
                     />
                     <Text style={styles.score}>{scores.rows[4]}</Text>
                 </View>
@@ -209,12 +226,12 @@ const LocalScreen = ({ navigation }) => {
                     activeCard={activeCard}
                     activePlayer={activePlayer}
                     gameOver={gameOver}
-                    total={getTotal('rows', scores, crib, cribPlayer, gameOver, displayCards)}
+                    total={totals.rows}
                     touchCallback={(position) => {
                         console.log('called' + position);
                         updateCrib(crib, position, activeCard, setCrib);
                         setActiveCard({suit:null, value:null});
-                        finishPlay(setGameOver);
+                        finishPlay();
                     }}
                 />
                 <CribPart
@@ -224,12 +241,12 @@ const LocalScreen = ({ navigation }) => {
                     activeCard={activeCard}
                     activePlayer={activePlayer}
                     gameOver={gameOver}
-                    total={getTotal('columns', scores, crib, cribPlayer, gameOver, displayCards)}
+                    total={totals.columns}
                     touchCallback={(position) => {
                         console.log('called' + position);
                         updateCrib(crib, position, activeCard, setCrib);
                         setActiveCard({suit:null, value:null});
-                        finishPlay(setGameOver);
+                        finishPlay();
                     }}
                 />
             </View>
@@ -242,7 +259,7 @@ const LocalScreen = ({ navigation }) => {
                 <View style={styles.deckContainer}>
                     <Card suit={activeCard.suit} value={activeCard.value} />
                     <TouchableOpacity onPress={() => {
-                                if(!activeCard.suit){
+                                if(!activeCard.suit && !gameOver){
                                     setActiveCard(nextCard);
                                 }
                             }}>
@@ -250,6 +267,13 @@ const LocalScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
             </View>
+
+            {(!gameOver) ? null: (
+                <View style={styles.finishModal}>
+                    <Text style={styles.modalText}>Game Over!</Text>
+                    <Text style={styles.modalText}>{getWinMessage()}</Text>
+                </View>)
+            }
 
         </View>
     );
@@ -309,6 +333,19 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-around',
 
+    },
+    finishModal: {
+        zIndex: 10,
+        height: 100,
+        marginHorizontal: 5,
+        borderRadius: 5,
+        backgroundColor: '#808080',
+        alignItems: 'center',
+    },
+    modalText: {
+        fontSize: 24,
+        color: 'white',
+        marginVertical: 5,
     }
 
 });
