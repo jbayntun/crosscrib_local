@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Text, StyleSheet, View, Button, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { Text, StyleSheet, View, FlatList, TouchableOpacity } from 'react-native';
+import PropTypes from 'prop-types';
 
 import Card from '../components/Card'
 import CardRow from '../components/CardRow'
@@ -20,7 +21,7 @@ const updateDisplayCards = (cards, position, newCard) => {
     c.suit = newCard.suit;
     c.count = newCard.count;
 
-    return cards;
+    return newCards;
 };
 
 const updateCrib = (crib, position, card, setCrib) => {
@@ -37,6 +38,7 @@ const updateCrib = (crib, position, card, setCrib) => {
 
 // should be an updated layout of the cards with the position that has changed.
 const updateScores = (scores, cards, newPosition) => {
+    console.log("/nXXX enter updateScores");
     var newscores = {};
     newscores.rows = [...scores.rows];
     newscores.columns = [...scores.columns];
@@ -50,6 +52,10 @@ const updateScores = (scores, cards, newPosition) => {
 
     newscores.rows[row] = Crib.scoreHand(rhand);
     newscores.columns[col] = Crib.scoreHand(chand);
+
+    console.log(newscores);
+    console.log("YYY end updateScores/n/n");
+
 
     return newscores;
 };
@@ -89,32 +95,40 @@ const LocalScreen = ({ navigation }) => {
     const [displayCards, setDisplayCards] = useState(initializeDisplayCards);
     const cribPlayer = ('rows');
     const [activePlayer, setActivePlayer] = useState((cribPlayer === 'rows') ? 'columns': 'rows'); // first card goes to player who does NOT own crib
-    const [names, setNames] = useState({rows: 'ROWS', columns: 'COLUMNS'});
     const [gameOver, setGameOver] = useState(false);
     const [totals, setTotals] = useState({rows: 0, columns: 0});
 
+    // state "setX" callback is async, so I use a temporary variable to keep the
+    // real current value to update dependent values, otherwise, the state at runtime
+    // may not actually have been updated
     const playCardToBoard = (newPos) => {
-        setDisplayCards(updateDisplayCards(displayCards, newPos, activeCard));
-        setScores(updateScores(scores, displayCards, newPos));
+        let newCards = updateDisplayCards(displayCards, newPos, activeCard);
+        setDisplayCards(newCards);
+
+        let newScores = updateScores(scores, newCards, newPos);
+        setScores(newScores);
+
+        setTotals({rows:calculateTotal('rows', newScores), columns:calculateTotal('columns', newScores)});
+
         setActiveCard({suit: null, value: null});
         setActivePlayer((activePlayer === 'columns') ? 'rows': 'columns');
         boardCount++;
-        finishPlay();
+
+        finishPlay(newScores);
     };
 
-    const calculateTotal = (player) => {
-        let total = scores[player].reduce((accumulator, currentValue) => {
+    const calculateTotal = (player, newScores, isOver) => {
+        let total = newScores[player].reduce((accumulator, currentValue) => {
             return accumulator + currentValue;});
 
-        if(gameOver && player === cribPlayer) {
-            console.log(displayCards[12]);
+        if(isOver && player === cribPlayer) {
             total += Crib.scoreHand([displayCards[12], crib.r1, crib.r2, crib.c1, crib.c2]);
         }
 
         return total;
     }
 
-    const finishPlay = () => {
+    const finishPlay = (newScores) => {
         nextCard = cribGame.play();
 
         // if all cards have been played to board, put remaining cards in crib
@@ -138,14 +152,16 @@ const LocalScreen = ({ navigation }) => {
             }
         }
 
-        setTotals({rows:calculateTotal('rows'), columns:calculateTotal('columns')});
-
         if(!nextCard) {
             setGameOver(true);
+            setTotals({rows:calculateTotal('rows', newScores, true),
+                columns:calculateTotal('columns', newScores, true)});
         }
 
     };
 
+    // Slight possibility there could be an async issue here.  If setTotals (which is async)
+    // hasn't completed when this is called, the resulting message could be incorrect.
     const getWinMessage = () => {
         if(totals.rows == totals.columns) {
             return "It's a tie game!";
@@ -253,7 +269,7 @@ const LocalScreen = ({ navigation }) => {
 
             <View style={styles.active}>
                 <View>
-                    <Text style={styles.activeText}>{players[activePlayer]}'s turn, {(activeCard.suit) ? 'place your card.' :'pick a card:'}</Text>
+                    <Text style={styles.activeText}>{players[activePlayer]}&apos;s turn, {(activeCard.suit) ? 'place your card.' :'pick a card:'}</Text>
                     <Text>The crib belongs to {players[cribPlayer]}</Text>
                 </View>
                 <View style={styles.deckContainer}>
@@ -349,5 +365,12 @@ const styles = StyleSheet.create({
     }
 
 });
+
+LocalScreen.propTypes = {
+    navigation: PropTypes.shape({
+        navigate: PropTypes.func.isRequired,
+        getParam: PropTypes.func.isRequired,
+    }).isRequired
+};
 
 export default LocalScreen;
