@@ -266,11 +266,13 @@ const LocalScreen = ({ navigation }) => {
                     }}
                 />
             </View>
+            <Text style={{alignSelf: 'center', height: '4%',}}>The crib belongs to {players[cribPlayer]}</Text>
 
             <View style={styles.active}>
                 <View>
-                    <Text style={styles.activeText}>{players[activePlayer]}&apos;s turn, {(activeCard.suit) ? 'place your card.' :'pick a card:'}</Text>
-                    <Text>The crib belongs to {players[cribPlayer]}</Text>
+                    <Text style={styles.activeText}>{players[activePlayer]}&apos;s turn:</Text>
+                    <Text style={styles.activeText}>{(activeCard.suit) ? 'place your card.' :'pick a card:'}</Text>
+
                 </View>
                 <View style={styles.deckContainer}>
                     <Card suit={activeCard.suit} value={activeCard.value} />
@@ -300,22 +302,26 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#d2d2d2',
     },
+    playArea: {
+        height: '62%',
+    },
     row: {
         flexDirection: 'row',
+        height: '18.5%',
     },
     score: {
-        fontSize: 24,
+        fontSize: 18,
         fontWeight: 'bold',
         color: '#ffea00',
         marginHorizontal: 10,
         marginTop: 20,
     },
     scoreRows: {
-        fontSize: 24,
+        fontSize: 18,
         fontWeight: 'bold',
         color: '#ffea00',
-        marginRight: 45,
-        marginTop: 10,
+        marginRight: 47,
+        marginTop: 5,
     },
     deckContainer: {
         flexDirection: 'row',
@@ -332,14 +338,14 @@ const styles = StyleSheet.create({
     },
     active: {
         flexDirection: 'row',
-        position: 'absolute',
-        bottom: 10,
-        left: 10,
         borderWidth: 1,
         paddingVertical: 2,
         paddingHorizontal: 10,
         width: 390,
         justifyContent: 'space-between',
+        alignSelf: 'center',
+        marginVertical: 5,
+        height: '13%',
     },
     activeText: {
         fontSize: 20,
@@ -348,6 +354,7 @@ const styles = StyleSheet.create({
     cribArea: {
         flexDirection: 'row',
         justifyContent: 'space-around',
+        height: '20%',
 
     },
     finishModal: {

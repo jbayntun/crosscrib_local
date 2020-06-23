@@ -7,7 +7,7 @@ const spots = [{suit:'empty'},{suit:'empty'},{suit:'empty'},{suit:'empty'},{suit
 
 const CardRow = ({ spots, activeCard, placeCard }) => {
     return (
-        <View style={styles.container}>
+        <View>
             <FlatList
                 data={spots}
                 horizontal={true}

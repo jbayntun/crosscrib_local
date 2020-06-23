@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, View, TouchableOpacity, Dimensions } from 'react-native';
 
 var SUITS = {
     diamonds: {color: 'red', icon: '♦'},
@@ -7,6 +7,8 @@ var SUITS = {
     clubs: {color:'black', icon: '♣'},
     spades: {color:'black', icon: '♠'}
 };
+
+var HEIGHT = Dimensions.get('window').height/10.3;
 
 const Card = ({ suit, value, posID, activeCard, placeCard, cribPlayer, activePlayer, gameOver }) => {
     if (suit === null)
@@ -40,8 +42,8 @@ const Card = ({ suit, value, posID, activeCard, placeCard, cribPlayer, activePla
 
 const styles = StyleSheet.create({
     card: {
-        height: 75,
-        width: 50,
+        height: HEIGHT,
+        aspectRatio:0.68,
         backgroundColor: 'white',
         borderRadius: 5,
         margin: 3,
@@ -50,16 +52,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     empty: {
-        height: 75,
-        width: 50,
+        height: HEIGHT,
+        aspectRatio:0.68,
         backgroundColor: '#389203',
         borderRadius: 5,
         margin: 3,
         fontSize: 10,
     },
     full: {
-        width: 50,
-        height: 75,
+        height: HEIGHT,
+        aspectRatio:0.68,
         backgroundColor: 'blue',
         borderRadius: 5,
         margin: 3,
