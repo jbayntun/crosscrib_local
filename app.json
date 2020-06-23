@@ -7,7 +7,7 @@
       "android",
       "web"
     ],
-    "version": "1.0.0",
+    "version": "0.9.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -22,7 +22,13 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pluckypenguin.crosscrib",
+      "buildNumber": "1.0.0"
+    },
+    "android": {
+      "package": "com.pluckypenguin.crosscrib",
+      "versionCode": 1
     }
   }
 }

@@ -35,8 +35,12 @@ const Card = ({ suit, value, posID, activeCard, placeCard, cribPlayer, activePla
     }
 
     return <View style={styles.card}>
-        <Text style={{ fontSize: 22, color: SUITS[suit].color}}>{value}</Text>
-        <Text style={{ fontSize: 18, color: SUITS[suit].color}}>{SUITS[suit].icon}</Text>
+        <Text style={{ fontSize: 24, color: SUITS[suit].color}}>
+            {value}
+        </Text>
+        <Text style={{ fontSize: 20, color: SUITS[suit].color}}>
+            {SUITS[suit].icon}
+        </Text>
     </View>;
 };
 

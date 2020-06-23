@@ -281,7 +281,7 @@ const LocalScreen = ({ navigation }) => {
                                     setActiveCard(nextCard);
                                 }
                             }}>
-                        <View style={styles.deck} />
+                        <Card suit='fake' value={null} cribPlayer={true} gameOver={false}  />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -304,6 +304,7 @@ const styles = StyleSheet.create({
     },
     playArea: {
         height: '62%',
+        alignSelf: 'center',
     },
     row: {
         flexDirection: 'row',
@@ -326,15 +327,6 @@ const styles = StyleSheet.create({
     deckContainer: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
-    },
-    deck: {
-        height: 75,
-        width: 50,
-        backgroundColor: 'blue',
-        borderRadius: 5,
-        marginVertical: 3,
-        padding: 1,
-        alignSelf: 'flex-end'
     },
     active: {
         flexDirection: 'row',
