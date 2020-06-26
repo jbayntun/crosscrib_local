@@ -33,6 +33,7 @@ class Crib {
             return this.deck.draw();
         }
 
+        console.log('No Cards Left!!');
         return null;
     }
 

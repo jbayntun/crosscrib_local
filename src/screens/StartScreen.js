@@ -7,7 +7,7 @@ const StartScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-        <Text style={{fontSize: 24, margin: 20}}>Enter Player Names: </Text>
+        <Text style={{fontSize: 24, margin: 25}}>Enter Player Names: </Text>
         <View style={styles.input}>
             <TextInput
                 style={styles.content}

@@ -38,7 +38,6 @@ const updateCrib = (crib, position, card, setCrib) => {
 
 // should be an updated layout of the cards with the position that has changed.
 const updateScores = (scores, cards, newPosition) => {
-    console.log("/nXXX enter updateScores");
     var newscores = {};
     newscores.rows = [...scores.rows];
     newscores.columns = [...scores.columns];
@@ -52,10 +51,6 @@ const updateScores = (scores, cards, newPosition) => {
 
     newscores.rows[row] = Crib.scoreHand(rhand);
     newscores.columns[col] = Crib.scoreHand(chand);
-
-    console.log(newscores);
-    console.log("YYY end updateScores/n/n");
-
 
     return newscores;
 };
@@ -117,47 +112,37 @@ const LocalScreen = ({ navigation }) => {
         finishPlay(newScores);
     };
 
-    const calculateTotal = (player, newScores, isOver) => {
+    const calculateTotal = (player, newScores, isOver, in_crib) => {
         let total = newScores[player].reduce((accumulator, currentValue) => {
             return accumulator + currentValue;});
 
         if(isOver && player === cribPlayer) {
-            total += Crib.scoreHand([displayCards[12], crib.r1, crib.r2, crib.c1, crib.c2]);
+            total += Crib.scoreHand([displayCards[12], in_crib.r1, in_crib.r2, in_crib.c1, in_crib.c2]);
         }
 
         return total;
     }
 
     const finishPlay = (newScores) => {
-        nextCard = cribGame.play();
-
         // if all cards have been played to board, put remaining cards in crib
         // this avoids the game being locked if the non-active player still needs to add to crib
         if(boardCount === 24) {
-            if(!crib.r1.suit) {
-                crib.r1 = nextCard;
-                nextCard = cribGame.play();
-            }
-            if(!crib.r2.suit) {
-                crib.r2 = nextCard;
-                nextCard = cribGame.play();
-            }
-            if(!crib.c1.suit) {
-                crib.c1 = nextCard;
-                nextCard = cribGame.play();
-            }
-            if(!crib.c2.suit) {
-                crib.c2 = nextCard;
-                nextCard = cribGame.play();
-            }
-        }
 
-        if(!nextCard) {
+            var tempCrib = {};
+            tempCrib.r1 = (crib.r1.suit) ? crib.r1: cribGame.play();
+            tempCrib.r2 = (crib.r2.suit) ? crib.r2: cribGame.play();
+            tempCrib.c2 = (crib.c2.suit) ? crib.c2: cribGame.play();
+            tempCrib.c1 = (crib.c1.suit) ? crib.c1: cribGame.play();
+
+            setCrib(tempCrib);
             setGameOver(true);
-            setTotals({rows:calculateTotal('rows', newScores, true),
-                columns:calculateTotal('columns', newScores, true)});
+            setTotals({rows:calculateTotal('rows', newScores, true, tempCrib),
+                columns:calculateTotal('columns', newScores, true, tempCrib)});
+            console.log('game over');
+            return;
         }
 
+        nextCard = cribGame.play();
     };
 
     // Slight possibility there could be an async issue here.  If setTotals (which is async)
@@ -244,7 +229,6 @@ const LocalScreen = ({ navigation }) => {
                     gameOver={gameOver}
                     total={totals.rows}
                     touchCallback={(position) => {
-                        console.log('called' + position);
                         updateCrib(crib, position, activeCard, setCrib);
                         setActiveCard({suit:null, value:null});
                         finishPlay();
@@ -259,7 +243,6 @@ const LocalScreen = ({ navigation }) => {
                     gameOver={gameOver}
                     total={totals.columns}
                     touchCallback={(position) => {
-                        console.log('called' + position);
                         updateCrib(crib, position, activeCard, setCrib);
                         setActiveCard({suit:null, value:null});
                         finishPlay();
@@ -270,8 +253,8 @@ const LocalScreen = ({ navigation }) => {
 
             <View style={styles.active}>
                 <View>
-                    <Text style={styles.activeText}>{players[activePlayer]}&apos;s turn:</Text>
-                    <Text style={styles.activeText}>{(activeCard.suit) ? 'place your card.' :'pick a card:'}</Text>
+                    <Text style={styles.activeText}>{players[activePlayer]}&apos;s turn!</Text>
+                    <Text style={styles.activeText}>{(activeCard.suit) ? 'Place your card.' :'Pick a card:'}</Text>
 
                 </View>
                 <View style={styles.deckContainer}>
@@ -333,7 +316,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         paddingVertical: 2,
         paddingHorizontal: 10,
-        width: 390,
+        width: '95%',
         justifyContent: 'space-between',
         alignSelf: 'center',
         marginVertical: 5,
@@ -351,11 +334,15 @@ const styles = StyleSheet.create({
     },
     finishModal: {
         zIndex: 10,
-        height: 100,
+        height: 95,
         marginHorizontal: 5,
         borderRadius: 5,
         backgroundColor: '#808080',
         alignItems: 'center',
+        position: 'absolute',
+        bottom:2,
+        width: '95%',
+        alignSelf: 'center',
     },
     modalText: {
         fontSize: 24,
