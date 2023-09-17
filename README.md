@@ -19,14 +19,18 @@ The app is deployed using Expo. As of 2023, due to evolving software updates, de
 - **Game Conclusion**: Upon reaching the end, a winner screen declares the victor.
 
 ## Screenshots
+Sorry for the poor contrast with the yellow for row and column subtotals!  It was better on a real device.
+
 Start Screen
 
-![Start Screen](start.png)
+<img src="start.png" alt="Start Screen" width="250"/>
+
 
 Gameplay
 
-![Gameplay](gameplay.png)
+<img src="gameplay.png" alt="Gameplay" width="250"/>
+
 
 Winner Screen
 
-![Winner Screen](winner.png)
+<img src="winner.png" alt="Winner Screen" width="250"/>
